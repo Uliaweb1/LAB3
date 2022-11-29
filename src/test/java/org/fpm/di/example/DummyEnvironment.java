@@ -8,15 +8,14 @@ import org.fpm.di.Environment;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DummyEnvironment implements Environment {//DummyEnvironment реалізує інтерфейс Environment
+public class DummyEnvironment implements Environment {
     @Override
-    public Container configure(Configuration configuration) {//configure інтерфейсна функція інтерфейсу Environment, яка повертає сконфігурований Container.
-        Map<Class<?>, Object> objInstances = new HashMap<>();//створюємо спільний словник для об'єктів
-        Map<Class<?>, Class<?>> diMap = new HashMap<>();//створюємо спільний словник для класів
-        //створюємо DummyContainer і DummyBinder з силками на спільні словники
+    public Container configure(Configuration configuration) {
+        Map<Class<?>, Object> objInstances = new HashMap<>();
+        Map<Class<?>, Class<?>> diMap = new HashMap<>();
         DummyContainer container = new DummyContainer(objInstances, diMap);
         DummyBinder binder = new DummyBinder(objInstances, diMap);
-        configuration.configure(binder);//конфігуруємо контейнер з допомогою Binder
+        configuration.configure(binder);
         return container;
     }
 }

@@ -10,73 +10,68 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class DummyContainer implements Container {//DummyContainer реалізує інтерфейс Container
-    private final Map<Class<?>, Object> objInstances;// спільний словник обєктів
-    private final Map<Class<?>, Class<?>> diMap;//спільний словник класів
-    public DummyContainer(Map<Class<?>, Object> objInstances, Map<Class<?>, Class<?>> diMap) {//конструктор DummyContainer
-        this.objInstances = objInstances;//збереження переданих силок у спільні словники у приватні члени класу.
-        this.diMap = diMap;//збереження переданих силок у спільні словники у приватні члени класу.
+public class DummyContainer implements Container {
+    private final Map<Class<?>, Object> objInstances;
+    private final Map<Class<?>, Class<?>> diMap;
+    public DummyContainer(Map<Class<?>, Object> objInstances, Map<Class<?>, Class<?>> diMap) {
+        this.objInstances = objInstances;
+        this.diMap = diMap;
     }
     @Override
-    public <T> T getComponent(Class<T> clazz) {//реалізація інтерфейсної функції getComponent
-        if (diMap.containsKey(clazz)) {//умова яка перевіряє присутність ключа clazz у словнику класів контейнера.
-            if (diMap.get(clazz).equals(clazz)) {//умова, яка перевіряє рівність ключа та значення у словнику класів контейнера
-                //якщо рівні, то контейнер повинен повернути створений за замовчуванням інстанс класу clazz
-                final List<Constructor<?>> injectedConstructors//змінна, що містить список конструкторів класу clazz з анотацією inject
+    public <T> T getComponent(Class<T> clazz) {
+        if (diMap.containsKey(clazz)) {
+            if (diMap.get(clazz).equals(clazz)) {
+                final List<Constructor<?>> injectedConstructors
                         = Arrays
                         .stream(clazz.getDeclaredConstructors())//потік конструкторів класу clazz.
-                        .filter(a -> a.isAnnotationPresent(Inject.class))//фільтрація конструкторів, які містять анотація Inject (використовується лямбда(це функція без імені), що перевіряє присутність анотації Inject)
+                        .filter(a -> a.isAnnotationPresent(Inject.class))
                         .toList();//конвертація потоку в список
-                if (clazz.isAnnotationPresent(Singleton.class)) {//умова, що перевіряє присутність анотації Singleton класа clazz.
-                    try {// блок коду, що може викликати винятків
+                if (clazz.isAnnotationPresent(Singleton.class)) {
+                    try {
                         //наприклад clazz=MySingleton.class
-                        return (T) clazz.getDeclaredMethod("getInstance").invoke(null);//якщо анотація присутня, то викликаємо метод getInstance
-                    } catch (IllegalAccessException e) {//обробка винятків
+                        return (T) clazz.getDeclaredMethod("getInstance").invoke(null);
+                    } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {//обробка винятків
+                    } catch (InvocationTargetException e) {
                         throw new RuntimeException(e);
-                    } catch (NoSuchMethodException e) {//обробка винятків
+                    } catch (NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
-                } else if (injectedConstructors.size() == 1) {//умова, що перевіряє наявність лише одного конструктору з анотацією inject
-                    final Constructor<?> ctor = injectedConstructors.get(0);//отримуємо елемент з індексом 0, тобто єдиний конструктор з анотацією inject
+                } else if (injectedConstructors.size() == 1) {
+                    final Constructor<?> ctor = injectedConstructors.get(0);
                     final Object ctorParam = getComponent(
-                            Arrays.stream(ctor.getParameterTypes()).toList().get(0)// отримуємо єдиний тип параметру конструктора з анотацією inject
-                    );//отримуємо силку на обєкт відповідного типу з контейнеру(DummyContainer).
+                            Arrays.stream(ctor.getParameterTypes()).toList().get(0)
+                    );
                     try {
                         //наприклад clazz=UseA.class
-                        return (T) ctor.newInstance(ctorParam);//створюємо обєкт класу clazz(за допомогою конструктора ctor) з впроваденим обєктом ctorParam в якості аргументу
-                    } catch (InstantiationException e) {//обробка винятків
+                        return (T) ctor.newInstance(ctorParam);
+                    } catch (InstantiationException e) {
                         throw new RuntimeException(e);
-                    } catch (IllegalAccessException e) {//обробка винятків
+                    } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {//обробка винятків
+                    } catch (InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
-                } else {//якщо анотації Singleton та Inject відсутні
+                } else {
                     try {
-                        //наприклад clazz=MyPrototype.class
-                        return clazz.getDeclaredConstructor().newInstance();//створюємо обєкт класу clazz за допомогою конструктора за замовчуванням.
-                    } catch (InstantiationException e) {//обробка винятків
-                        throw new RuntimeException(e);//обробка винятків
-                    } catch (IllegalAccessException e) {//обробка винятків
-                        throw new RuntimeException(e);//обробка винятків
-                    } catch (InvocationTargetException e) {//обробка винятків
-                        throw new RuntimeException(e);//обробка винятків
-                    } catch (NoSuchMethodException e) {//обробка винятків
-                        throw new RuntimeException(e);//обробка винятків
+                        return clazz.getDeclaredConstructor().newInstance();
+                    } catch (InstantiationException e) {
+                        throw new RuntimeException(e);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
                     }
                 }
-            } else {//якщо ключ та значення у словнику класів не співпадають
-                //наприклад clazz=A.class
-                return (T) getComponent(diMap.get(clazz));//отримуємо силку з контейнеру на обєкт класу що відповідає значенню за ключем clazz у словнику класів
+            } else {
+                return (T) getComponent(diMap.get(clazz));
             }
         }
-        if (objInstances.containsKey(clazz)) {//умова що перевіряє присутність словнику clazz у словнику обєктів.
-            //наприклад clazz=B.class
-            return (T) objInstances.get(clazz);//Якщо обєкт відповідного типу присутній у словнику, то контейнер повертає силку на нього.
+        if (objInstances.containsKey(clazz)) {
+            return (T) objInstances.get(clazz);
         }
-      //якщо ключ clazz відсутній у словниках, то контейнер повертає силку на null обєкт
         return null;
     }
 }

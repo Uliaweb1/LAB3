@@ -38,7 +38,6 @@ public class Example {
     }
     @Test
     public void shouldInjectB() {
-        //Контейнер сконфігуровано так щоб він повертав одне й те саме посилання на об'єкт класу В, а саме посилання на вже створений об'єкт класу В
         assertSame(container.getComponent(B.class), container.getComponent(B.class));
     }
 
@@ -60,7 +59,6 @@ public class Example {
     }
     @Test
     public void shouldUseSameDependencies() {
-        //об'єкти useA всі різні, але сконфігуровані так, що мають спільну залежність (від сінглтону В)
         final UseA useA1 = container.getComponent(UseA.class);
         final UseA useA2 = container.getComponent(UseA.class);
         assertNotSame(useA1, useA2);
